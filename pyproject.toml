@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "container-secure-compose"
+version = "0.1.0"
+description = "Privilege-minimised Docker Compose configuration generator"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "click>=8.1",
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+]
+
+[project.scripts]
+csc = "csc.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["csc*"]

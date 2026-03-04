@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# Output
+output/
+
+# Tools / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Agent workspace temp files
+tmpclaude-*
+
+# Resources (not part of this repository)
+resources/
