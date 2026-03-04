@@ -1,0 +1,14 @@
+_meta:
+  name: drop-privileges
+  description: >
+    Convenience block combining drop-capabilities, no-new-privileges, and non-root.
+    Equivalent to the 'standard' block but without any image-default assumptions.
+    Use 'standard' for typical workloads; use this when composing from scratch.
+  security_impact: low
+  escalation: false
+
+cap_drop:
+  - ALL
+security_opt:
+  - no-new-privileges:true
+user: nobody

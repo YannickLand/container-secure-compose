@@ -1,0 +1,16 @@
+_meta:
+  name: layer2-network
+  description: >
+    Connects the container to a Layer-2 (MACVLAN) network and grants the
+    capabilities necessary for raw network interface operations. Requires a
+    corresponding 'layer2' network block in the networks section.
+  security_impact: high
+  escalation: true
+  incompatible_with:
+    - host-network
+
+cap_add:
+  - NET_ADMIN
+  - NET_RAW
+networks:
+  - layer2

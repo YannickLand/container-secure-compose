@@ -1,0 +1,10 @@
+_meta:
+  name: root
+  description: >
+    Explicitly runs the container process as root (UID 0). Avoid unless strictly
+    necessary. Prefer using specific Linux capability blocks instead. Document the
+    reason in your application config whenever this block is used.
+  security_impact: high
+  escalation: true
+
+user: root

@@ -1,0 +1,16 @@
+_meta:
+  name: init
+  description: >
+    Init container pattern: runs once to completion before workload containers start.
+    Retains only CHOWN and DAC_OVERRIDE capabilities for filesystem setup tasks such
+    as creating directories and setting ownership. All other capabilities are dropped.
+    Use 'wait-init' on workload containers that depend on this container finishing.
+  security_impact: medium
+  escalation: false
+
+restart: "no"
+cap_drop:
+  - ALL
+cap_add:
+  - CHOWN
+  - DAC_OVERRIDE

@@ -1,0 +1,8 @@
+_meta:
+  name: data
+  description: >
+    A named Docker volume for persistent application data storage. Docker manages
+    the volume lifecycle independently of containers. No additional security
+    configuration is applied; access control is enforced at the container level.
+  security_impact: low
+  escalation: false

@@ -1,0 +1,11 @@
+_meta:
+  name: add-cap-net-admin
+  description: >
+    Adds the NET_ADMIN Linux capability. Allows network interface configuration,
+    routing table changes, and firewall rule management. Grant only when the
+    container explicitly needs to configure host or container networking.
+  security_impact: medium
+  escalation: true
+
+cap_add:
+  - NET_ADMIN

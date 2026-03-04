@@ -1,0 +1,11 @@
+_meta:
+  name: no-new-privileges
+  description: >
+    Prevents the container process from gaining additional privileges through
+    setuid/setgid binaries or file capabilities (security_opt: no-new-privileges).
+    This is a low-cost, high-value hardening measure for all containers.
+  security_impact: low
+  escalation: false
+
+security_opt:
+  - no-new-privileges:true

@@ -1,0 +1,11 @@
+_meta:
+  name: wait-init
+  description: >
+    Makes this service start only after the container named 'init' has finished.
+    Requires a container named exactly 'init' in the same Compose project.
+    Combine with the 'init' building block on the init container itself.
+  security_impact: low
+  escalation: false
+
+depends_on:
+  - init

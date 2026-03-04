@@ -1,0 +1,10 @@
+_meta:
+  name: non-root
+  description: >
+    Runs the container process as the unprivileged 'nobody' user.
+    Requires the container image to support running as this user.
+    Override with an explicit 'user: <uid>' in properties if a named user is needed.
+  security_impact: low
+  escalation: false
+
+user: nobody

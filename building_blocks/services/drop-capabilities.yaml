@@ -1,0 +1,11 @@
+_meta:
+  name: drop-capabilities
+  description: >
+    Drops all Linux capabilities from the container (cap_drop: ALL).
+    Combine with no-new-privileges and non-root for a fully restricted container,
+    or use the 'standard' block which already includes all three.
+  security_impact: low
+  escalation: false
+
+cap_drop:
+  - ALL

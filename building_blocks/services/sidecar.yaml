@@ -1,0 +1,9 @@
+_meta:
+  name: sidecar
+  description: >
+    Sidecar container pattern: always restarts to stay alive alongside the main
+    workload. Combine this with 'standard' for a privilege-minimised sidecar.
+  security_impact: low
+  escalation: false
+
+restart: always

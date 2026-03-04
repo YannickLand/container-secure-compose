@@ -1,0 +1,10 @@
+_meta:
+  name: layer2
+  description: >
+    A MACVLAN network that gives the container its own MAC address on a host
+    interface, allowing it to appear as a distinct device on the physical network.
+    Required when using the layer2-network service building block.
+  security_impact: high
+  escalation: true
+
+driver: macvlan

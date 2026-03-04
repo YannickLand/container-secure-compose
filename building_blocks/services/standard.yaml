@@ -1,0 +1,14 @@
+_meta:
+  name: standard
+  description: >
+    Secure baseline for application containers. Drops all Linux capabilities,
+    enforces no-new-privileges, and runs as the unprivileged 'nobody' user.
+    Use this as the default for any container that does not require elevated access.
+  security_impact: low
+  escalation: false
+
+cap_drop:
+  - ALL
+security_opt:
+  - no-new-privileges:true
+user: nobody

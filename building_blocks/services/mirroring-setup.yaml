@@ -1,0 +1,16 @@
+_meta:
+  name: mirroring-setup
+  description: >
+    One-shot setup container that installs Linux tc rules on the host to mirror
+    traffic into a designated monitoring container. Runs with host network access
+    and NET_ADMIN/NET_RAW. After setup completes, the monitoring container requires
+    no additional privileges. See https://github.com/YannickLand/container-net-mirroring
+    for the companion project that provides the actual setup image.
+  security_impact: high
+  escalation: true
+
+restart: "no"
+network_mode: host
+cap_add:
+  - NET_ADMIN
+  - NET_RAW

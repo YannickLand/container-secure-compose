@@ -1,0 +1,17 @@
+_meta:
+  name: host-network
+  description: >
+    Attaches the container to the host network namespace. Grants full network
+    visibility and control. Use only when direct host-level network access is
+    strictly required. A read-only network monitoring alternative is available
+    via the mirroring-setup building block (see container-net-mirroring project).
+  security_impact: high
+  escalation: true
+  incompatible_with:
+    - app-internal
+    - layer2-network
+
+network_mode: host
+cap_add:
+  - NET_ADMIN
+  - NET_RAW

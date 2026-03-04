@@ -1,0 +1,11 @@
+_meta:
+  name: app-internal
+  description: >
+    An isolated internal bridge network. Containers on this network can reach
+    each other by service name but have no external connectivity by default.
+    Suitable for inter-container communication that should not be exposed externally.
+  security_impact: low
+  escalation: false
+
+driver: bridge
+internal: true

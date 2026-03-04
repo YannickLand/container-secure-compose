@@ -1,0 +1,11 @@
+_meta:
+  name: add-cap-net-raw
+  description: >
+    Adds the NET_RAW Linux capability. Allows raw and packet socket access,
+    enabling tools like ping, tcpdump, and custom packet crafting. Grant only
+    when the container explicitly needs raw network access.
+  security_impact: medium
+  escalation: true
+
+cap_add:
+  - NET_RAW

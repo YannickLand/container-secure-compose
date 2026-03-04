@@ -1,0 +1,10 @@
+_meta:
+  name: privileged
+  description: >
+    Runs the container in privileged mode, granting access to all host devices
+    and disabling most kernel security boundaries. This is the highest escalation
+    possible. Use only as an absolute last resort and document the reason explicitly.
+  security_impact: critical
+  escalation: true
+
+privileged: true
