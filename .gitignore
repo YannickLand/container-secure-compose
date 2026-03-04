@@ -16,6 +16,11 @@ env/
 # Output
 output/
 
+# Test / coverage artifacts
+.coverage
+.pytest_cache/
+htmlcov/
+
 # Tools / IDE
 .vscode/
 .idea/

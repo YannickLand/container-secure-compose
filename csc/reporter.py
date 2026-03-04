@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import json
+from dataclasses import asdict, dataclass, field
 from typing import Any
-
 
 # ---------------------------------------------------------------------------
 # Security property checks
@@ -78,43 +78,49 @@ _IMPACT_LABEL = {
     "critical": "CRITICAL",
 }
 
-_COL_WIDTHS = {
-    "service": 16,
+_FIXED_WIDTHS = {
     "cap_drop_all": 11,
     "no_new_priv": 13,
     "non_root": 11,
     "read_only": 11,
     "impact": 10,
-    "notes": 0,  # fills remainder
 }
+_MIN_SERVICE_COL = 16
 
 
-def _row(r: ServiceReport) -> str:
+def _service_col_width(reports: list[ServiceReport]) -> int:
+    """Compute service column width dynamically to fit the longest name."""
+    if not reports:
+        return _MIN_SERVICE_COL
+    return max(_MIN_SERVICE_COL, max(len(r.name) for r in reports) + 2)
+
+
+def _row(r: ServiceReport, svc_width: int) -> str:
     return (
-        f"  {r.name:<{_COL_WIDTHS['service']}}"
-        f"{_ICONS[r.cap_drop_all]:<{_COL_WIDTHS['cap_drop_all']}}"
-        f"{_ICONS[r.no_new_privileges]:<{_COL_WIDTHS['no_new_priv']}}"
-        f"{_ICONS[r.non_root]:<{_COL_WIDTHS['non_root']}}"
-        f"{_ICONS[r.read_only_fs]:<{_COL_WIDTHS['read_only']}}"
-        f"{_IMPACT_LABEL[r.impact]:<{_COL_WIDTHS['impact']}}"
+        f"  {r.name:<{svc_width}}"
+        f"{_ICONS[r.cap_drop_all]:<{_FIXED_WIDTHS['cap_drop_all']}}"
+        f"{_ICONS[r.no_new_privileges]:<{_FIXED_WIDTHS['no_new_priv']}}"
+        f"{_ICONS[r.non_root]:<{_FIXED_WIDTHS['non_root']}}"
+        f"{_ICONS[r.read_only_fs]:<{_FIXED_WIDTHS['read_only']}}"
+        f"{_IMPACT_LABEL[r.impact]:<{_FIXED_WIDTHS['impact']}}"
         f"{r.notes}"
     )
 
 
-def _header() -> str:
+def _header(svc_width: int) -> str:
     return (
-        f"  {'Service':<{_COL_WIDTHS['service']}}"
-        f"{'cap_drop':<{_COL_WIDTHS['cap_drop_all']}}"
-        f"{'no-new-priv':<{_COL_WIDTHS['no_new_priv']}}"
-        f"{'non-root':<{_COL_WIDTHS['non_root']}}"
-        f"{'read-only':<{_COL_WIDTHS['read_only']}}"
-        f"{'impact':<{_COL_WIDTHS['impact']}}"
+        f"  {'Service':<{svc_width}}"
+        f"{'cap_drop':<{_FIXED_WIDTHS['cap_drop_all']}}"
+        f"{'no-new-priv':<{_FIXED_WIDTHS['no_new_priv']}}"
+        f"{'non-root':<{_FIXED_WIDTHS['non_root']}}"
+        f"{'read-only':<{_FIXED_WIDTHS['read_only']}}"
+        f"{'impact':<{_FIXED_WIDTHS['impact']}}"
         f"notes"
     )
 
 
-def _separator() -> str:
-    total = sum(_COL_WIDTHS[k] for k in _COL_WIDTHS) + _COL_WIDTHS["service"] + 20
+def _separator(svc_width: int) -> str:
+    total = svc_width + sum(_FIXED_WIDTHS.values()) + 20
     return "  " + "-" * total
 
 
@@ -131,14 +137,26 @@ def build_report(services: dict[str, Any]) -> list[ServiceReport]:
 
 
 def format_report(reports: list[ServiceReport]) -> str:
+    svc_width = _service_col_width(reports)
     lines = [
         "",
         "Security report",
         "---------------",
-        _header(),
-        _separator(),
+        _header(svc_width),
+        _separator(svc_width),
     ]
     for r in reports:
-        lines.append(_row(r))
+        lines.append(_row(r, svc_width))
     lines.append("")
     return "\n".join(lines)
+
+
+def format_report_json(reports: list[ServiceReport]) -> str:
+    """Return the security report as a JSON string."""
+    rows = []
+    for r in reports:
+        d = asdict(r)
+        d["impact"] = r.impact
+        d["notes"] = r.notes
+        rows.append(d)
+    return json.dumps(rows, indent=2)

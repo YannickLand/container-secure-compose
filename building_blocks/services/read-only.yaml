@@ -1,0 +1,10 @@
+_meta:
+  name: read-only
+  description: >
+    Mounts the container's root filesystem as read-only. Prevents any process
+    inside the container from writing to the filesystem image. Use tmpfs mounts
+    for directories that require write access at runtime (e.g. /tmp).
+  security_impact: low
+  escalation: false
+
+read_only: true
