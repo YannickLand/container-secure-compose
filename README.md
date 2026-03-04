@@ -46,7 +46,7 @@ them as starting points for new applications.
 pip install -e .
 ```
 
-Requires Python 3.9+.
+Requires Python 3.11+.
 
 ## Quick start
 
@@ -115,6 +115,7 @@ volumes:
 | `host-network` | **high** | network_mode: host + NET_ADMIN + NET_RAW |
 | `layer2-network` | **high** | MACVLAN network attachment + NET_ADMIN + NET_RAW |
 | `mirroring-setup` | **high** | One-shot host traffic mirroring setup |
+| `read-only` | low | Mount root filesystem read-only (`read_only: true`) |
 | `root` | **high** | user: root |
 | `privileged` | **critical** | privileged: true |
 
@@ -140,9 +141,11 @@ csc generate <config>
     Generate docker-compose.yml from a CSC application config.
 
     Options:
-      -o, --output PATH      Output file path (default: output/<app_name>/docker-compose.yml)
-      -b, --blocks-dir PATH  Building blocks directory (default: building_blocks/ near config or CWD)
-      --no-report            Suppress the security report
+      -o, --output PATH           Output file path (default: output/<app_name>/docker-compose.yml)
+      -b, --blocks-dir PATH       Building blocks directory (default: building_blocks/ near config or CWD)
+      --stdout                    Print YAML to stdout instead of writing a file
+      --no-report                 Suppress the security report
+      --report-format [text|json] Security report format (default: text)
 
 csc validate <config>
     Validate the config and check that all referenced building blocks exist.
@@ -157,6 +160,20 @@ csc list-blocks
 
 csc explain <config>
     Show what each building block contributes per service. No files written.
+
+csc audit <compose-file>
+    Run a security report against any existing docker-compose.yml
+    (does not require a csc config file).
+
+    Options:
+      --report-format [text|json]
+
+csc diff <config> <compose-file>
+    Compare what csc would generate against an existing docker-compose.yml.
+    Highlights security regressions and exits non-zero when any are found.
+
+    Options:
+      -b, --blocks-dir PATH
 ```
 
 ## Security report
