@@ -1,0 +1,43 @@
+# Architecture template: init container + workload + traffic mirroring
+#
+# Demonstrates secure network monitoring: a setup container installs traffic
+# mirroring rules on the host, after which a monitor container receives a
+# read-only copy of network traffic without requiring host-network access.
+#
+# The mirroring-setup container uses the container-net-mirroring companion
+# project: https://github.com/YannickLand/container-net-mirroring
+#
+# Usage:
+#   1. Copy this file and fill in the placeholder values.
+#   2. Configure the mirroring rules in the mirroring-setup container's volume.
+#   3. Run: csc generate your-app.yaml
+#
+# Replace all values wrapped in <angle-brackets>.
+
+app_name: "<your-application>"
+version: "3"
+
+services:
+  - name: mirroring-setup
+    building_blocks:
+      - mirroring-setup
+    properties:
+      image: "<mirroring-setup-image>:latest"
+      volumes:
+        - ./mirroring_config.yaml:/config/mirroring_config.yaml:ro
+
+  - name: monitor
+    building_blocks:
+      - standard
+    properties:
+      depends_on:
+        - mirroring-setup
+      image: "<your-monitor-image>:latest"
+      restart: unless-stopped
+
+  - name: workload
+    building_blocks:
+      - standard
+    properties:
+      image: "<your-workload-image>:latest"
+      restart: unless-stopped

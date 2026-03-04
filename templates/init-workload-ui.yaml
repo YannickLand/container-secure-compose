@@ -1,0 +1,47 @@
+# Architecture template: init container + workload + UI
+#
+# A three-container pattern where an init container prepares shared state
+# (volumes, user directories) before workload and UI containers start.
+#
+# Usage:
+#   1. Copy this file and fill in the placeholder values.
+#   2. Run: csc generate your-app.yaml
+#
+# Replace all values wrapped in <angle-brackets>.
+
+app_name: "<your-application>"
+version: "3"
+
+services:
+  - name: init
+    building_blocks:
+      - init
+    properties:
+      image: "<your-init-image>:latest"
+      volumes:
+        - app-data:/data
+
+  - name: workload
+    building_blocks:
+      - standard
+      - wait-init
+    properties:
+      image: "<your-workload-image>:latest"
+      restart: unless-stopped
+      volumes:
+        - app-data:/data
+
+  - name: ui
+    building_blocks:
+      - standard
+      - wait-init
+    properties:
+      image: "<your-ui-image>:latest"
+      ports:
+        - "8080:8080"
+      restart: unless-stopped
+      volumes:
+        - app-data:/data:ro
+
+volumes:
+  - name: app-data

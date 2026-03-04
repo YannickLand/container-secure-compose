@@ -1,0 +1,46 @@
+# ping-tracker application config
+#
+# A small demonstration application with three containers:
+#   init     - prepares the shared data volume (runs once, then exits)
+#   tracker  - sends periodic pings and writes results to the shared volume
+#   ui       - serves a web UI showing the ping results (read-only volume access)
+#
+# All workload containers use the 'standard' secure baseline:
+#   cap_drop: ALL, no-new-privileges, user: nobody
+
+app_name: ping-tracker
+version: "3"
+
+services:
+  - name: init
+    building_blocks:
+      - init
+    properties:
+      image: ping-tracker-init:latest
+      volumes:
+        - tracker-data:/data
+
+  - name: tracker
+    building_blocks:
+      - standard
+      - wait-init
+    properties:
+      image: ping-tracker-tracker:latest
+      restart: unless-stopped
+      volumes:
+        - tracker-data:/data
+
+  - name: ui
+    building_blocks:
+      - standard
+      - wait-init
+    properties:
+      image: ping-tracker-ui:latest
+      ports:
+        - "8080:8080"
+      restart: unless-stopped
+      volumes:
+        - tracker-data:/data:ro
+
+volumes:
+  - name: tracker-data

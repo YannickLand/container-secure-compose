@@ -1,0 +1,36 @@
+# Architecture template: workload + sidecar
+#
+# A two-container pattern where a sidecar container augments a workload container
+# (e.g. for logging, monitoring, or proxying) without requiring privileged access.
+# Both containers run with the secure 'standard' baseline.
+#
+# Usage:
+#   1. Copy this file and fill in the placeholder values.
+#   2. Run: csc generate your-app.yaml
+#
+# Replace all values wrapped in <angle-brackets>.
+
+app_name: "<your-application>"
+version: "3"
+
+services:
+  - name: workload
+    building_blocks:
+      - standard
+    properties:
+      image: "<your-workload-image>:latest"
+      restart: unless-stopped
+      volumes:
+        - app-data:/data
+
+  - name: sidecar
+    building_blocks:
+      - standard
+      - sidecar
+    properties:
+      image: "<your-sidecar-image>:latest"
+      volumes:
+        - app-data:/data:ro
+
+volumes:
+  - name: app-data
