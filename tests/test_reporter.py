@@ -74,15 +74,24 @@ class TestAnalyseService:
 
 
 class TestImpact:
-    def _report(self, **kwargs) -> ServiceReport:
-        defaults = dict(
+    def _report(
+        self,
+        cap_drop_all: bool = True,
+        no_new_privileges: bool = True,
+        non_root: bool = True,
+        host_network: bool = False,
+        privileged: bool = False,
+        cap_add: list[str] | None = None,
+    ) -> ServiceReport:
+        return ServiceReport(
             name="x",
-            cap_drop_all=True,
-            no_new_privileges=True,
-            non_root=True,
+            cap_drop_all=cap_drop_all,
+            no_new_privileges=no_new_privileges,
+            non_root=non_root,
+            host_network=host_network,
+            privileged=privileged,
+            cap_add=cap_add or [],
         )
-        defaults.update(kwargs)
-        return ServiceReport(**defaults)
 
     def test_low_impact(self):
         assert self._report().impact == "low"
