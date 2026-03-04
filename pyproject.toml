@@ -41,7 +41,7 @@ target-version = "py39"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP"]
-ignore = ["E501"]
+ignore = ["E501", "UP045"]  # UP045: Optional[X] required for Pydantic/Python 3.9 runtime compat
 
 [tool.mypy]
 python_version = "3.9"
