@@ -82,14 +82,21 @@ class TestGenerateCommand:
     def test_version_deprecation_warning(self, tmp_path, capsys):
         """The ping-tracker config has a version key — warning should appear on stderr."""
         runner = CliRunner()
-        result = runner.invoke(
-            cli,
-            ["generate", str(EXAMPLE_CONFIG), "--blocks-dir", str(BLOCKS_DIR),
-             "-o", str(tmp_path / "compose.yml")],
-            catch_exceptions=False,
-        )
+        # Use a temporary config that still has a version key
+        from pathlib import Path
+        import tempfile, yaml as _yaml
+        with tempfile.TemporaryDirectory() as td:
+            cfg = Path(td) / "app_config.yaml"
+            cfg.write_text("app_name: version-test\nversion: '3'\n")
+            result = runner.invoke(
+                cli,
+                ["generate", str(cfg), "--blocks-dir", str(BLOCKS_DIR),
+                 "--no-report", "--stdout"],
+                catch_exceptions=False,
+            )
         assert result.exit_code == 0
-        assert "version" in result.output.lower()
+        # The deprecation warning goes to stderr; combined output contains it
+        assert "version" in (result.output + (result.stderr if hasattr(result, 'stderr') else '')).lower()
 
 
 # ---------------------------------------------------------------------------
@@ -365,10 +372,16 @@ class TestDiffCommandErrors:
         """diff reports when existing file is more restrictive than generated (lines 393, 402, 415-432)."""
         from csc.generator import generate, write_compose
         compose, _, _, _ = generate(EXAMPLE_CONFIG, BLOCKS_DIR)
-        # Make the existing file more restrictive: add read_only to tracker
-        compose["services"]["tracker"]["read_only"] = True
+        # Make the existing file more restrictive: add no-new-privileges to init
+        # (init block intentionally omits no-new-privileges; adding it to existing = improvement)
+        existing_services = dict(compose.get("services", {}))
+        existing_services["init"] = dict(existing_services.get("init", {}))
+        if "security_opt" not in existing_services["init"]:
+            existing_services["init"]["security_opt"] = ["no-new-privileges:true"]
         existing = tmp_path / "dc.yml"
-        write_compose(compose, existing)
+        import yaml as _yaml
+        with existing.open("w") as fh:
+            _yaml.safe_dump({"services": existing_services}, fh)
         result = CliRunner().invoke(
             cli,
             ["diff", str(EXAMPLE_CONFIG), str(existing), "--blocks-dir", str(BLOCKS_DIR)],

@@ -175,8 +175,11 @@ class TestGenerate:
         tracker = compose["services"]["tracker"]
         assert "ALL" in [str(c).upper() for c in tracker.get("cap_drop", [])]
 
-    def test_version_deprecation_warning(self, example_config, blocks_dir):
-        _, _, warnings, errors = generate(example_config, blocks_dir)
+    def test_version_deprecation_warning(self, tmp_path, blocks_dir):
+        """A config with a top-level 'version' key emits a deprecation warning."""
+        cfg = tmp_path / "app_config.yaml"
+        cfg.write_text("app_name: test\nversion: '3'\n")
+        _, _, warnings, errors = generate(cfg, blocks_dir)
         assert errors == []
         assert any("version" in w.lower() for w in warnings)
 

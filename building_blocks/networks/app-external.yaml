@@ -1,0 +1,10 @@
+_meta:
+  name: app-external
+  description: >
+    An externally accessible bridge network for services that need to bind
+    host ports. Attach this in addition to app-internal for services that
+    publish ports; keep internal-only services on app-internal alone.
+  security_impact: low
+  escalation: false
+
+driver: bridge

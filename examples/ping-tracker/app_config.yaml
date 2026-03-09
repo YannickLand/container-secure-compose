@@ -7,16 +7,19 @@
 #
 # All workload containers use the 'standard' secure baseline:
 #   cap_drop: ALL, no-new-privileges, user: nobody
+#
+# read-only and tmpfs are applied to limit filesystem write surface.
+# Network isolation: tracker stays on the internal network; ui also joins
+# the external network so it can bind port 8080.
 
 app_name: ping-tracker
-version: "3"
 
 services:
   - name: init
     building_blocks:
       - init
     properties:
-      image: ping-tracker-init:latest
+      image: ping-tracker-init:1.0.0
       volumes:
         - tracker-data:/data
 
@@ -24,23 +27,43 @@ services:
     building_blocks:
       - standard
       - wait-init
+      - read-only
     properties:
-      image: ping-tracker-tracker:latest
+      image: ping-tracker-tracker:1.0.0
       restart: unless-stopped
+      tmpfs:
+        - /tmp
       volumes:
         - tracker-data:/data
+      networks:
+        - app-internal
 
   - name: ui
     building_blocks:
       - standard
       - wait-init
+      - read-only
     properties:
-      image: ping-tracker-ui:latest
+      image: ping-tracker-ui:1.0.0
       ports:
         - "8080:8080"
       restart: unless-stopped
+      tmpfs:
+        - /tmp
       volumes:
         - tracker-data:/data:ro
+      networks:
+        - app-internal
+        - app-external
+
+networks:
+  - name: app-internal
+    building_blocks:
+      - app-internal
+
+  - name: app-external
+    building_blocks:
+      - app-external
 
 volumes:
   - name: tracker-data
