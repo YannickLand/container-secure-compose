@@ -240,3 +240,181 @@ class TestDiffCommand:
             catch_exceptions=False,
         )
         assert "only in generated" in result.output.lower()
+
+
+# ---------------------------------------------------------------------------
+# Additional edge-case tests to cover remaining uncovered paths
+# ---------------------------------------------------------------------------
+
+
+class TestGenerateCommandErrors:
+    def test_invalid_config_yaml_exits_nonzero(self, tmp_path):
+        """generate with a broken config YAML must exit non-zero (lines 34-36)."""
+        cfg = tmp_path / "bad.yaml"
+        cfg.write_text("app_name: [\n")
+        result = run("generate", cfg, "--blocks-dir", BLOCKS_DIR)
+        assert result.exit_code != 0
+
+    def test_missing_blocks_dir_exits_nonzero(self, tmp_path):
+        """generate with no blocks dir emits errors and exits non-zero."""
+        cfg = tmp_path / "app.yaml"
+        cfg.write_text("app_name: myapp\n")
+        result = run("generate", cfg, "--blocks-dir", tmp_path / "no_such_dir")
+        assert result.exit_code != 0
+
+
+class TestValidateCommandErrors:
+    def test_invalid_config_exits_nonzero(self, tmp_path):
+        """validate with invalid config YAML (lines 240-243)."""
+        cfg = tmp_path / "bad.yaml"
+        cfg.write_text("app_name: [\n")
+        result = run("validate", cfg, "--blocks-dir", BLOCKS_DIR)
+        assert result.exit_code != 0
+
+    def test_missing_blocks_dir_exits_nonzero(self, tmp_path):
+        """validate with missing blocks dir (lines 149-152)."""
+        cfg = tmp_path / "app.yaml"
+        cfg.write_text("app_name: myapp\n")
+        result = run("validate", cfg, "--blocks-dir", tmp_path / "no_such_dir")
+        assert result.exit_code != 0
+
+
+class TestListBlocksCommandErrors:
+    def test_missing_blocks_dir_exits_nonzero(self, tmp_path, monkeypatch):
+        """list-blocks with no blocks dir available (lines 192-194)."""
+        monkeypatch.chdir(tmp_path)
+        result = CliRunner().invoke(cli, ["list-blocks"], catch_exceptions=False)
+        assert result.exit_code != 0
+
+    def test_empty_category_directory_skipped(self, tmp_path):
+        """list-blocks skips a category dir with no .yaml files (lines 201, 205)."""
+        bd = tmp_path / "building_blocks"
+        (bd / "services").mkdir(parents=True)
+        (bd / "networks").mkdir(parents=True)
+        # no .yaml files anywhere
+        result = run("list-blocks", "--blocks-dir", bd)
+        assert result.exit_code == 0
+
+
+class TestExplainCommandErrors:
+    def test_invalid_config_exits_nonzero(self, tmp_path):
+        """explain with invalid config (lines 240-243)."""
+        cfg = tmp_path / "bad.yaml"
+        cfg.write_text("app_name: [\n")
+        result = run("explain", cfg, "--blocks-dir", BLOCKS_DIR)
+        assert result.exit_code != 0
+
+    def test_missing_blocks_dir_exits_nonzero(self, tmp_path):
+        """explain with missing blocks dir (lines 249-252)."""
+        cfg = tmp_path / "app.yaml"
+        cfg.write_text("app_name: myapp\n")
+        result = run("explain", cfg, "--blocks-dir", tmp_path / "no_such_dir")
+        assert result.exit_code != 0
+
+    def test_missing_block_shown_as_not_found(self, tmp_path):
+        """explain shows '(not found)' for a missing block (lines 266-267)."""
+        bd = tmp_path / "building_blocks"
+        (bd / "services").mkdir(parents=True)
+        cfg = tmp_path / "app.yaml"
+        cfg.write_text(
+            "app_name: myapp\nservices:\n"
+            "  - name: svc\n    building_blocks:\n      - nonexistent\n"
+        )
+        result = run("explain", cfg, "--blocks-dir", bd)
+        assert result.exit_code == 0
+        assert "not found" in result.output
+
+
+class TestAuditCommandErrors:
+    def test_invalid_yaml_exits_nonzero(self, tmp_path):
+        """audit with broken YAML exits non-zero (lines 301-303)."""
+        p = tmp_path / "bad.yml"
+        p.write_text("services: [\n")
+        result = CliRunner().invoke(cli, ["audit", str(p)], catch_exceptions=False)
+        assert result.exit_code != 0
+
+
+class TestDiffCommandErrors:
+    def test_invalid_compose_yaml_exits_nonzero(self, tmp_path):
+        """diff with broken compose YAML exits non-zero (lines 349-352)."""
+        bad = tmp_path / "bad.yml"
+        bad.write_text("services: [\n")
+        result = CliRunner().invoke(
+            cli,
+            ["diff", str(EXAMPLE_CONFIG), str(bad), "--blocks-dir", str(BLOCKS_DIR)],
+            catch_exceptions=False,
+        )
+        assert result.exit_code != 0
+
+    def test_services_only_in_existing_reported(self, tmp_path):
+        """diff labels services that exist only in the existing file (lines 378-379)."""
+        from csc.generator import generate, write_compose
+        compose, _, _, _ = generate(EXAMPLE_CONFIG, BLOCKS_DIR)
+        # Add an extra service only in the existing file
+        compose["services"]["extra-svc"] = {"image": "extra:latest", "privileged": True}
+        existing = tmp_path / "dc.yml"
+        write_compose(compose, existing)
+        result = CliRunner().invoke(
+            cli,
+            ["diff", str(EXAMPLE_CONFIG), str(existing), "--blocks-dir", str(BLOCKS_DIR)],
+            catch_exceptions=False,
+        )
+        assert "only in existing" in result.output.lower()
+
+    def test_improvements_reported(self, tmp_path):
+        """diff reports when existing file is more restrictive than generated (lines 393, 402, 415-432)."""
+        from csc.generator import generate, write_compose
+        compose, _, _, _ = generate(EXAMPLE_CONFIG, BLOCKS_DIR)
+        # Make the existing file more restrictive: add read_only to tracker
+        compose["services"]["tracker"]["read_only"] = True
+        existing = tmp_path / "dc.yml"
+        write_compose(compose, existing)
+        result = CliRunner().invoke(
+            cli,
+            ["diff", str(EXAMPLE_CONFIG), str(existing), "--blocks-dir", str(BLOCKS_DIR)],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0
+        assert "Differences" in result.output or "only in existing" in result.output.lower()
+
+    def test_impact_improvement_reported(self, tmp_path):
+        """diff reports impact improvement when existing has lower impact than generated (line 402)."""
+        # Build a config where a service uses `init` block (medium/high impact due to cap_add)
+        from csc.generator import generate, write_compose
+        compose, _, _, _ = generate(EXAMPLE_CONFIG, BLOCKS_DIR)
+        # Create an existing file where the init service has no cap_add → lower impact
+        existing_compose = {
+            "services": {
+                "init": {"cap_drop": ["ALL"], "security_opt": ["no-new-privileges:true"], "user": "nobody"},
+                "tracker": compose["services"]["tracker"],
+                "ui": compose["services"]["ui"],
+            }
+        }
+        existing = tmp_path / "dc.yml"
+        write_compose(existing_compose, existing)
+        result = CliRunner().invoke(
+            cli,
+            ["diff", str(EXAMPLE_CONFIG), str(existing), "--blocks-dir", str(BLOCKS_DIR)],
+            catch_exceptions=False,
+        )
+        # The existing init service has lower impact (low) than generated (high due to cap_add)
+        # → reports as "improvement" (existing more restrictive / lower impact)
+        assert result.exit_code == 0
+        assert "Differences" in result.output or "improvement" in result.output.lower()
+
+    def test_empty_generated_compose(self, tmp_path):
+        """diff exits cleanly when generated compose has no services (lines 357-359)."""
+        # A config with no services generates an empty compose
+        cfg = tmp_path / "app.yaml"
+        cfg.write_text("app_name: empty-app\n")
+        bd = tmp_path / "building_blocks"
+        (bd / "services").mkdir(parents=True)
+        existing = tmp_path / "dc.yml"
+        existing.write_text("services:\n  web:\n    image: nginx\n")
+        result = CliRunner().invoke(
+            cli,
+            ["diff", str(cfg), str(existing), "--blocks-dir", str(bd)],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0
+        assert "no services" in result.output.lower()

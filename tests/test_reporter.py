@@ -8,6 +8,7 @@ import pytest
 from csc.reporter import (
     ServiceReport,
     _analyse_service,
+    _service_col_width,
     build_report,
     format_report,
     format_report_json,
@@ -215,3 +216,25 @@ class TestFormatReportJson:
     def test_empty_reports(self):
         result = format_report_json([])
         assert json.loads(result) == []
+
+
+# ---------------------------------------------------------------------------
+# _service_col_width
+# ---------------------------------------------------------------------------
+
+
+class TestServiceColWidth:
+    def test_empty_reports_returns_minimum(self):
+        """Empty list must return _MIN_SERVICE_COL without crashing (line 94)."""
+        from csc.reporter import _MIN_SERVICE_COL
+        assert _service_col_width([]) == _MIN_SERVICE_COL
+
+    def test_short_name_uses_minimum(self):
+        from csc.reporter import _MIN_SERVICE_COL
+        reports = [ServiceReport(name="web")]
+        assert _service_col_width(reports) == _MIN_SERVICE_COL
+
+    def test_long_name_expands_column(self):
+        long_name = "a" * 30
+        reports = [ServiceReport(name=long_name)]
+        assert _service_col_width(reports) == len(long_name) + 2

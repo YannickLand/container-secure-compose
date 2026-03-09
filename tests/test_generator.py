@@ -230,6 +230,72 @@ class TestGenerate:
         assert errors == []
         assert compose["services"]["svc"]["user"] == 1001
 
+    def test_bad_yaml_config_returns_errors(self, tmp_path, tmp_blocks):
+        """generate() with invalid YAML returns errors early (line 172)."""
+        bd, _ = tmp_blocks
+        cfg = tmp_path / "app_config.yaml"
+        cfg.write_text("app_name: [\n")  # intentionally broken YAML
+        compose, app_config, _, errors = generate(cfg, bd)
+        assert compose == {}
+        assert app_config is None
+        assert errors
+
+    def test_invalid_meta_warning_propagated(self, tmp_path, tmp_blocks):
+        """generate() propagates _validate_block_meta warnings (lines 219-220)."""
+        bd, write_block = tmp_blocks
+        write_block("services", "badmeta", {
+            "_meta": {"security_impact": "INVALID_LEVEL"},
+            "restart": "always",
+        })
+        cfg = tmp_path / "app_config.yaml"
+        cfg.write_text(
+            "app_name: test\nservices:\n"
+            "  - name: svc\n    building_blocks:\n      - badmeta\n"
+        )
+        _, _, warnings, errors = generate(cfg, bd)
+        assert errors == []
+        assert any("invalid _meta" in w for w in warnings)
+
+    def test_block_scalar_collision_warning_propagated(self, tmp_path, tmp_blocks):
+        """generate() propagates _merge collision warnings when two blocks conflict (lines 223-224)."""
+        bd, write_block = tmp_blocks
+        write_block("services", "block-a", {
+            "_meta": {"security_impact": "low"},
+            "restart": "always",
+        })
+        write_block("services", "block-b", {
+            "_meta": {"security_impact": "low"},
+            "restart": "no",
+        })
+        cfg = tmp_path / "app_config.yaml"
+        cfg.write_text(
+            "app_name: test\nservices:\n"
+            "  - name: svc\n    building_blocks:\n      - block-a\n      - block-b\n"
+        )
+        _, _, warnings, errors = generate(cfg, bd)
+        assert errors == []
+        assert any("collision" in w for w in warnings)
+
+    def test_incompatibility_warning_propagated(self, tmp_path, tmp_blocks):
+        """generate() propagates _check_incompatibilities warnings (lines 227-228)."""
+        bd, write_block = tmp_blocks
+        write_block("services", "block-x", {
+            "_meta": {"security_impact": "low", "incompatible_with": ["block-y"]},
+            "cap_drop": ["ALL"],
+        })
+        write_block("services", "block-y", {
+            "_meta": {"security_impact": "low"},
+            "network_mode": "host",
+        })
+        cfg = tmp_path / "app_config.yaml"
+        cfg.write_text(
+            "app_name: test\nservices:\n"
+            "  - name: svc\n    building_blocks:\n      - block-x\n      - block-y\n"
+        )
+        _, _, warnings, errors = generate(cfg, bd)
+        assert errors == []
+        assert any("block-x" in w and "block-y" in w for w in warnings)
+
 
 # ---------------------------------------------------------------------------
 # write_compose / compose_to_yaml_string
