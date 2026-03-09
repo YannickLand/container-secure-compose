@@ -1,8 +1,6 @@
 """Tests for csc.generator._merge()."""
 from __future__ import annotations
 
-import pytest
-
 from csc.generator import _merge
 
 

@@ -3,8 +3,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
 from csc.reporter import (
     ServiceReport,
     _analyse_service,
@@ -13,7 +11,6 @@ from csc.reporter import (
     format_report,
     format_report_json,
 )
-
 
 # ---------------------------------------------------------------------------
 # _analyse_service

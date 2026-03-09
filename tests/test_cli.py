@@ -4,12 +4,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
 import yaml
 from click.testing import CliRunner
 
 from csc.cli import cli
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -45,7 +43,7 @@ class TestGenerateCommand:
         assert content is None or isinstance(content, dict)
         raw = out.read_text()
         # skip header lines and parse the rest
-        body = "\n".join(l for l in raw.splitlines() if not l.startswith("#"))
+        body = "\n".join(ln for ln in raw.splitlines() if not ln.startswith("#"))
         parsed = yaml.safe_load(body)
         assert "services" in parsed
 
@@ -74,7 +72,7 @@ class TestGenerateCommand:
         # Find the JSON part of the output
         # It follows the "Generated: ..." line
         lines = result.output.strip().splitlines()
-        json_start = next(i for i, l in enumerate(lines) if l.strip().startswith("["))
+        json_start = next(i for i, ln in enumerate(lines) if ln.strip().startswith("["))
         parsed = json.loads("\n".join(lines[json_start:]))
         assert isinstance(parsed, list)
         assert all("impact" in row for row in parsed)
@@ -83,8 +81,9 @@ class TestGenerateCommand:
         """The ping-tracker config has a version key — warning should appear on stderr."""
         runner = CliRunner()
         # Use a temporary config that still has a version key
+        import tempfile
         from pathlib import Path
-        import tempfile, yaml as _yaml
+
         with tempfile.TemporaryDirectory() as td:
             cfg = Path(td) / "app_config.yaml"
             cfg.write_text("app_name: version-test\nversion: '3'\n")
@@ -370,7 +369,7 @@ class TestDiffCommandErrors:
 
     def test_improvements_reported(self, tmp_path):
         """diff reports when existing file is more restrictive than generated (lines 393, 402, 415-432)."""
-        from csc.generator import generate, write_compose
+        from csc.generator import generate
         compose, _, _, _ = generate(EXAMPLE_CONFIG, BLOCKS_DIR)
         # Make the existing file more restrictive: add no-new-privileges to init
         # (init block intentionally omits no-new-privileges; adding it to existing = improvement)
