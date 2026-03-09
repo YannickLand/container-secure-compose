@@ -1,5 +1,7 @@
 # container-secure-compose
 
+<!-- badges placeholder — added in release setup -->
+
 A privilege-minimised Docker Compose configuration generator. Produces
 security-aware `docker-compose.yml` files from an abstract application
 description, using composable *building blocks* designed for minimal
@@ -227,3 +229,59 @@ Copy a template, fill in the placeholder values, and run `csc generate`.
   companion tool for the `mirroring-setup` building block. Configures Linux
   `tc` rules that mirror host network traffic into a container without granting
   it host-network access.
+
+## Documentation
+
+| Type | Contents |
+|---|---|
+| [Tutorial](docs/tutorials/getting-started.md) | Getting started: your first secure Compose file |
+| [How-to guides](docs/how-to-guides/) | Audit an existing Compose file, add custom blocks |
+| [Explanation](docs/explanation/security-model.md) | Security model and building-block design |
+| [Reference](docs/reference/cli-reference.md) | Full CLI reference and building-blocks reference |
+
+## Architecture
+
+```
+csc/                    Core package
+  cli.py                Click CLI entry point — all commands
+  generator.py          Config loading, block merging, Compose output
+  reporter.py           Security report analysis and formatting
+  models.py             Pydantic models for app config and block metadata
+building_blocks/        Built-in building blocks (YAML snippets)
+  services/             Service-level blocks (standard, host-network, …)
+  networks/             Network blocks (app-internal, layer2)
+  volumes/              Volume blocks (data)
+templates/              Ready-to-use app_config.yaml starting points
+examples/               Worked examples with input config and generated output
+tests/                  pytest test suite
+docs/                   Diataxis documentation
+```
+
+## Development
+
+```bash
+# Install with dev extras
+pip install -e ".[dev]"
+
+# Run tests (unit only, fast)
+pytest -m "not integration"
+
+# Run tests with full coverage report
+pytest --cov=csc --cov-report=term-missing
+
+# Lint
+ruff check .
+
+# Type check
+mypy csc/
+
+# Security scan — source
+bandit -r csc/ -ll
+
+# Security scan — dependencies
+pip-audit
+```
+
+## License
+
+[MIT](LICENSE)
