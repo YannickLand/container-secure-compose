@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it using the metadata below."
+type: software
+title: "container-secure-compose"
+abstract: >
+  A privilege-minimised Docker Compose configuration generator. Produces
+  security-aware docker-compose.yml files from an abstract application
+  description using composable building blocks designed for minimal container
+  privileges.
+authors:
+  - family-names: Land
+    given-names: Yannick
+    orcid: "https://orcid.org/XXXX-XXXX-XXXX-XXXX"
+    github: YannickLand
+version: "0.1.0"
+date-released: "2026-03-09"
+license: MIT
+doi: "10.5281/zenodo.XXXXXXX"
+repository-code: "https://github.com/YannickLand/container-secure-compose"
+keywords:
+  - docker
+  - docker-compose
+  - container-security
+  - devops
+  - security-hardening
+  - capability-dropping
