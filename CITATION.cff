@@ -15,6 +15,7 @@ authors:
 version: "1.0.0"
 date-released: "2026-03-10"
 license: MIT
+doi: "10.5281/zenodo.18935442"
 repository-code: "https://github.com/YannickLand/container-secure-compose"
 keywords:
   - docker
