@@ -8,8 +8,9 @@ abstract: >
   description using composable building blocks designed for minimal container
   privileges.
 authors:
-  - family-names: Land
+  - family-names: Landeck
     given-names: Yannick
+    orcid: "https://orcid.org/0009-0008-0340-3602"
     github: YannickLand
 version: "1.0.0"
 date-released: "2026-03-10"
